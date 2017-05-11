@@ -6,6 +6,7 @@ It makes images sound. Wow! (It's a lot cooler than I'm making it sound (get it 
 
 # Dependencies
 Install soundfile
+
     pip install soundfile
 
 # License

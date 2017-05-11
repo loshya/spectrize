@@ -25,8 +25,9 @@ def image_to_audio(image,sample_rate=44100,audio_duration=3):
 
     return frequencies.astype('int16').reshape(-1,1)
 
-if len(sys.argv) < 2:
+if len(sys.argv) != 2:
     print('Invalid usage. (spectrize <image-file>)')
+    exit(64)
 
 path = sys.argv[1]
 
@@ -38,11 +39,11 @@ image = imread(path,mode="RGB")
 channels = []
 
 for i in range(3):
-    result = image_to_audio(image[:,:,i])
+    result = image_to_audio(image[:,:,i], sample_rate, audio_duration)
     channels.append(result)
 
 image = imread(path,mode="L")
-result = image_to_audio(image,sample_rate=sample_rate,audio_duration=audio_duration)
+result = image_to_audio(image, sample_rate=sample_rate, audio_duration=audio_duration)
 channels.append(result)
 
 channels = np.concatenate(channels,axis=1)
