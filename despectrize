@@ -1,35 +1,61 @@
 #!/usr/bin/env python3
 import soundfile as sf
 import numpy as np
-from scipy.ndimage import imread
+import scipy.ndimage as im
+import PIL.Image
+import PIL.ImageOps
 import matplotlib.pyplot as plt
-from scipy import signal
+import scipy.signal as signal
 import time
 import sys
 
-def channel_to_image(channel, sample_rate, width = 800, height = 600):
+def channel_to_image(red, green, blue, sample_rate, width = 800, height = 600):
 
-    freq_increments = (sample_rate//2) // height
+    frequencies, times, red = signal.spectrogram(red, sample_rate, nperseg = 2048)
+    frequencies, times, green = signal.spectrogram(green, sample_rate, nperseg = 2048)
+    frequencies, times, blue = signal.spectrogram(blue, sample_rate, nperseg = 2048)
 
-    frequencies, times, spectrogram = signal.spectrogram(channel, sample_rate)
+    pixels_per_time = width / len(times)
+    pixels_per_frequencies = height / len(frequencies)
 
-    spectrogram = spectrogram / spectrogram.max() * 10000
+    red = np.log(red)
+    red = 255 - (red / red.min()) * 255
+    green = np.log(green)
+    green = 255 - (green / green.min()) * 255
+    blue = np.log(blue)
+    blue = 255 - (blue / blue.min()) * 255
 
-    plt.pcolormesh(times, frequencies, spectrogram)
-    plt.ylabel('Frequency [Hz]')
-    plt.xlabel('Time [sec]')
-    plt.show()
+    red = im.interpolation.zoom(red, [pixels_per_frequencies, pixels_per_time])[::-1]
+    green = im.interpolation.zoom(green, [pixels_per_frequencies, pixels_per_time])[::-1]
+    blue = im.interpolation.zoom(blue, [pixels_per_frequencies, pixels_per_time])[::-1]
 
-    
+    rgb = np.zeros((height, width, 3), dtype=np.uint8)
+    rgb[..., 0] = red
+    rgb[..., 1] = green
+    rgb[..., 2] = blue
 
-    
-    return
+    return rgb
+
+if (len(sys.argv) != 2) and (len(sys.argv) != 4):
+    print('Invalid usage. (despectrize <wave-file>) or (despectrize <wave-fil>) width height')
+    exit(64)
+
+
+
+width = 800
+height = 600
+path = sys.argv[1]
+if (len(sys.argv) == 4):
+    width = int(sys.argv[2])
+    height = int(sys.argv[3])
 
 samples, sample_rate = sf.read('output.wav')
 samples = samples.transpose(1,0)
 
 red = samples[0]
-blue = samples[1]
-green = samples[2]
-
-channel_to_image(blue, sample_rate)
+green = samples[1]
+blue = samples[2]
+rgb = channel_to_image(red, green, blue, sample_rate, width, height)
+image = PIL.Image.fromarray(rgb)
+# image = PIL.ImageOps.invert(image)
+image.save("output.png")
