@@ -25,7 +25,7 @@ def channel_to_image(red, green, blue, sample_rate, width = 800, height = 600):
     blue = np.log(blue)
     blue = 255 - (blue / blue.min()) * 255
 
-    red = im.interpolation.zoom(red, [pixels_per_frequencies, pixels_per_time])[::-1]
+    red = im.interpolation.zoom(red, [pixels_per_frequencies, pixels_per_time])[::-1] #it's upside down because how 0,0 is in graphs
     green = im.interpolation.zoom(green, [pixels_per_frequencies, pixels_per_time])[::-1]
     blue = im.interpolation.zoom(blue, [pixels_per_frequencies, pixels_per_time])[::-1]
 
@@ -37,13 +37,12 @@ def channel_to_image(red, green, blue, sample_rate, width = 800, height = 600):
     return rgb
 
 if (len(sys.argv) != 2) and (len(sys.argv) != 4):
-    print('Invalid usage. (despectrize <wave-file>) or (despectrize <wave-fil>) width height')
+    print('Invalid usage. (despectrize <wave-file>) or (despectrize <wave-file> width height)')
     exit(64)
-
-
 
 width = 800
 height = 600
+
 path = sys.argv[1]
 if (len(sys.argv) == 4):
     width = int(sys.argv[2])
@@ -57,5 +56,4 @@ green = samples[1]
 blue = samples[2]
 rgb = channel_to_image(red, green, blue, sample_rate, width, height)
 image = PIL.Image.fromarray(rgb)
-# image = PIL.ImageOps.invert(image)
-image.save("output.png")
+image.save('output.png')
